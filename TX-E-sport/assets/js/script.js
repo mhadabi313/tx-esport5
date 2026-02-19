@@ -1,11 +1,14 @@
-﻿const langButton = document.querySelector(".lang-switch");
+const langButton = document.querySelector(".lang-switch");
 const menuButton = document.querySelector(".menu-toggle");
 const nav = document.querySelector(".site-nav");
 const yearEl = document.getElementById("year");
 const toastWrap = document.createElement("div");
+const SHELL_SELECTORS = ".bg-layer, .site-header, main, footer";
 
 toastWrap.className = "toast-wrap";
 document.body.appendChild(toastWrap);
+
+document.querySelectorAll(SHELL_SELECTORS).forEach((el) => el.classList.add("site-shell"));
 
 if (yearEl) {
   yearEl.textContent = new Date().getFullYear();
@@ -51,6 +54,45 @@ function applyLanguage(lang) {
   }
 
   localStorage.setItem("tx_lang", lang);
+}
+
+function initEnterOverlay() {
+  const isHomePage = document.body.classList.contains("page-home");
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (!isHomePage || reduceMotion) {
+    document.body.classList.add("site-entered");
+    return;
+  }
+
+  const overlay = document.createElement("div");
+  overlay.className = "enter-overlay";
+  overlay.innerHTML = `
+    <div class="enter-overlay__grid"></div>
+    <div class="enter-overlay__ring"></div>
+    <div class="enter-overlay__panel">
+      <span class="enter-overlay__hint" data-en="TX ESPORTS" data-fa="تی ایکس ای اسپورت">TX ESPORTS</span>
+      <span class="enter-overlay__title" data-en="Welcome" data-fa="خوش آمدید">Welcome</span>
+    </div>
+  `;
+
+  document.body.classList.add("site-pre-enter");
+  document.body.appendChild(overlay);
+
+  const enterSite = () => {
+    if (overlay.dataset.locked === "1") return;
+    overlay.dataset.locked = "1";
+    document.body.classList.add("site-entering");
+    overlay.classList.add("leave");
+
+    setTimeout(() => {
+      overlay.remove();
+      document.body.classList.remove("site-pre-enter", "site-entering");
+      document.body.classList.add("site-entered");
+    }, 980);
+  };
+
+  setTimeout(enterSite, 700);
 }
 
 if (langButton) {
@@ -141,4 +183,5 @@ document.querySelectorAll("form[action*='formsubmit.co']").forEach((form) => {
   });
 });
 
+initEnterOverlay();
 applyLanguage(storedLang);
